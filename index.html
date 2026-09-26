@@ -22,12 +22,15 @@
       <a href="#locais">Locais</a>
       <a href="#grupos">Grupos</a>
       <a href="#campeonatos">Campeonatos</a>
-      <a href="#contato">Contato</a>
+      <a href="contato.html">Contato</a>
     </nav>
     <div class="topbar-actions">
       <button class="btn btn-ghost" id="btn-abrir-login" onclick="abrirAuth('login')">Entrar</button>
       <button class="btn btn-primary" id="btn-abrir-cadastro" onclick="abrirAuth('cadastro')">Criar conta</button>
-      <span class="user-chip hidden" id="user-chip"></span>
+      <div class="user-chip hidden" id="user-chip-container">
+        <span id="user-chip"></span>
+        <button class="btn btn-ghost btn-sm" onclick="fazerLogout()" style="padding: 2px 6px; color:#fff;" title="Sair">🚪</button>
+      </div>
     </div>
     <button class="hamburguer" id="hamburguer" aria-label="Abrir menu">☰</button>
   </div>
@@ -35,7 +38,6 @@
 
 <main>
 
-  <!-- HERO -->
   <section id="inicio" class="hero">
     <div class="wrap hero-inner">
       <div class="hero-text">
@@ -166,17 +168,17 @@
       <form class="card contato-form" onsubmit="enviarContato(event)">
         <div class="field">
           <label for="c-nome">Nome</label>
-          <input id="c-nome" type="text" required>
+          <input id="c-nome" type="text" placeholder="Seu nome completo" required>
         </div>
         <div class="field">
           <label for="c-email">E-mail</label>
-          <input id="c-email" type="email" required>
+          <input id="c-email" type="email" placeholder="seuemail@exemplo.com" required>
         </div>
         <div class="field">
-          <label for="c-msg">Mensagem</label>
-          <textarea id="c-msg" rows="4" required></textarea>
+          <label for="c-msg">Mensagem (opcional)</label>
+          <textarea id="c-msg" rows="4" placeholder="Escreva sua mensagem aqui..."></textarea>
         </div>
-        <button type="submit" class="btn btn-primary btn-lg">Enviar mensagem</button>
+        <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-enviar-contato">Enviar mensagem</button>
       </form>
     </div>
   </section>
@@ -190,7 +192,7 @@
   </div>
 </footer>
 
-<!-- ===== ASSISTENTE (chat) ===== -->
+<!-- ASSISTENTE CHAT -->
 <button class="chat-fab" id="chat-fab" onclick="alternarChat()" aria-label="Abrir assistente">💬</button>
 <div class="chat-box hidden" id="chat-box">
   <div class="chat-head">
@@ -204,47 +206,89 @@
   </form>
 </div>
 
-<!-- ===== MODAL: LOGIN / CADASTRO ===== -->
+<!-- MODAL: LOGIN / CADASTRO / ESQUECI SENHA -->
 <div class="modal hidden" id="modal-auth">
   <div class="modal-card">
     <button class="modal-close" onclick="fecharModal('modal-auth')">✕</button>
-    <div class="auth-tabs">
+    
+    <div class="auth-tabs" id="auth-tabs-header">
       <button id="auth-tab-login" class="auth-tab active" onclick="mudarAbaAuth('login')">Entrar</button>
       <button id="auth-tab-cadastro" class="auth-tab" onclick="mudarAbaAuth('cadastro')">Criar conta</button>
     </div>
 
+    <!-- LOGIN -->
     <form id="form-login" onsubmit="fazerLogin(event)">
       <div class="field">
-        <label>E-mail</label>
+        <label for="login-email">E-mail</label>
         <input id="login-email" type="email" required>
       </div>
       <div class="field">
-        <label>Senha</label>
-        <input id="login-senha" type="password" required minlength="4">
+        <label for="login-senha">Senha</label>
+        <div class="password-wrapper">
+          <input id="login-senha" type="password" required minlength="4">
+          <button type="button" class="btn-toggle-pw" onclick="alternarVisibilidadeSenha('login-senha', this)">👁️</button>
+        </div>
       </div>
-      <button type="submit" class="btn btn-primary btn-lg btn-block">Entrar</button>
+      <a class="link-esqueci" onclick="mudarAbaAuth('esqueci')">Esqueci minha senha</a>
+      <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-submit-login">Entrar</button>
     </form>
 
+    <!-- CADASTRO -->
     <form id="form-cadastro" class="hidden" onsubmit="fazerCadastro(event)">
       <div class="field">
-        <label>Nome</label>
+        <label for="cad-nome">Nome</label>
         <input id="cad-nome" type="text" required>
       </div>
       <div class="field">
-        <label>E-mail</label>
+        <label for="cad-idade">Idade</label>
+        <input id="cad-idade" type="number" min="1" max="120" required>
+      </div>
+      <div class="field">
+        <label for="cad-email">E-mail</label>
         <input id="cad-email" type="email" required>
       </div>
       <div class="field">
-        <label>Senha</label>
-        <input id="cad-senha" type="password" required minlength="4">
+        <label for="cad-senha">Senha</label>
+        <div class="password-wrapper">
+          <input id="cad-senha" type="password" required minlength="4">
+          <button type="button" class="btn-toggle-pw" onclick="alternarVisibilidadeSenha('cad-senha', this)">👁️</button>
+        </div>
       </div>
-      <button type="submit" class="btn btn-primary btn-lg btn-block">Criar conta</button>
+      <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-submit-cad">Criar conta</button>
     </form>
-    <p class="fineprint">Seus dados ficam guardados neste navegador, neste momento, para fins de demonstração.</p>
+
+    <!-- ESQUECI A SENHA - ETAPA 1: SOLICITAR CÓDIGO -->
+    <form id="form-esqueci-1" class="hidden" onsubmit="solicitarCodigoReset(event)">
+      <p class="muted" style="font-size: 13px; margin-bottom: 14px;">Digite seu e-mail cadastrado para receber o código de 6 dígitos no Discord.</p>
+      <div class="field">
+        <label for="reset-email">E-mail</label>
+        <input id="reset-email" type="email" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-submit-reset1">Enviar código</button>
+      <button type="button" class="btn btn-ghost btn-block" onclick="mudarAbaAuth('login')" style="margin-top: 8px;">Voltar ao Login</button>
+    </form>
+
+    <!-- ESQUECI A SENHA - ETAPA 2: DIGITAR CÓDIGO E NOVA SENHA -->
+    <form id="form-esqueci-2" class="hidden" onsubmit="confirmarResetSenha(event)">
+      <div class="field">
+        <label for="reset-codigo">Código de 6 dígitos</label>
+        <input id="reset-codigo" type="text" maxlength="6" pattern="[0-9]{6}" placeholder="Ex: 123456" required>
+      </div>
+      <div class="field">
+        <label for="reset-nova-senha">Nova Senha</label>
+        <div class="password-wrapper">
+          <input id="reset-nova-senha" type="password" required minlength="4">
+          <button type="button" class="btn-toggle-pw" onclick="alternarVisibilidadeSenha('reset-nova-senha', this)">👁️</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-submit-reset2">Redefinir senha</button>
+    </form>
+
+    <p class="fineprint">Aviso de segurança: Os dados de validação chegam via Webhook do Discord para demonstração.</p>
   </div>
 </div>
 
-<!-- ===== MODAL: CRIAR GRUPO ===== -->
+<!-- MODAIS SECUNDÁRIOS -->
 <div class="modal hidden" id="modal-grupo">
   <div class="modal-card">
     <button class="modal-close" onclick="fecharModal('modal-grupo')">✕</button>
@@ -282,7 +326,6 @@
   </div>
 </div>
 
-<!-- ===== MODAL: DETALHE DO GRUPO ===== -->
 <div class="modal hidden" id="modal-grupo-detalhe">
   <div class="modal-card wide">
     <button class="modal-close" onclick="fecharModal('modal-grupo-detalhe')">✕</button>
@@ -290,7 +333,6 @@
   </div>
 </div>
 
-<!-- ===== MODAL: CRIAR CAMPEONATO ===== -->
 <div class="modal hidden" id="modal-campeonato">
   <div class="modal-card">
     <button class="modal-close" onclick="fecharModal('modal-campeonato')">✕</button>
@@ -309,7 +351,6 @@
   </div>
 </div>
 
-<!-- ===== MODAL: DETALHE DO CAMPEONATO ===== -->
 <div class="modal hidden" id="modal-campeonato-detalhe">
   <div class="modal-card wide">
     <button class="modal-close" onclick="fecharModal('modal-campeonato-detalhe')">✕</button>
@@ -317,10 +358,8 @@
   </div>
 </div>
 
-<!-- ===== AVISO SIMPLES ===== -->
 <div class="toast hidden" id="toast"></div>
 
-<!-- ===== PAINEL ADMINISTRATIVO (acesso apenas por link direto) ===== -->
 <div class="admin-overlay hidden" id="admin-overlay">
   <div class="admin-box">
     <div id="admin-login">
