@@ -1,501 +1,334 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="scroll-smooth">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SportDev - Portfólio & Inovação Esportiva</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        sportDark: '#0B132B',
-                        sportCard: '#1C2541',
-                        sportAccent: '#FF6B35',
-                        sportGreen: '#06D6A0',
-                        sportBlue: '#3A86FF',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @keyframes bounceBall {
-            0%, 100% {
-                transform: translateY(0) scale(1, 0.95);
-            }
-            50% {
-                transform: translateY(-90px) scale(0.95, 1.05);
-            }
-        }
-        @keyframes pulseGlow {
-            0%, 100% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.05); }
-        }
-        .animate-bounce-custom {
-            animation: bounceBall 1.4s infinite ease-in-out;
-        }
-        .animate-glow {
-            animation: pulseGlow 3s infinite ease-in-out;
-        }
-        .profile-content {
-            transition: opacity 0.4s ease, transform 0.4s ease;
-        }
-        .profile-hidden {
-            opacity: 0;
-            transform: translateY(15px);
-            pointer-events: none;
-            display: none;
-        }
-        .profile-active {
-            opacity: 1;
-            transform: translateY(0);
-            display: block;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0B132B;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #3A86FF;
-            border-radius: 4px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seu Esporte Aqui</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-sportDark text-white font-sans antialiased selection:bg-sportAccent selection:text-white overflow-x-hidden">
+<body>
 
-    <header class="sticky top-0 z-50 bg-sportDark/90 backdrop-blur-md border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sportGreen to-sportBlue flex items-center justify-center shadow-lg shadow-sportGreen/20">
-                    <svg class="w-6 h-6 text-sportDark" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                </div>
-                <span class="text-2xl font-black tracking-wider bg-gradient-to-r from-white via-sportGreen to-sportBlue bg-clip-text text-transparent">Sport<span class="text-sportAccent">Dev</span></span>
-            </div>
-            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
-                <a href="#hero" class="hover:text-sportGreen transition-colors">Início</a>
-                <a href="#perfil-section" class="hover:text-sportGreen transition-colors">Perfis & Soluções</a>
-                <a href="#contato" class="hover:text-sportGreen transition-colors">Contato</a>
-            </nav>
-            <div>
-                <a href="#perfil-section" class="bg-sportAccent hover:bg-orange-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-sportAccent/30 transition-all transform hover:-translate-y-0.5">Explorar App</a>
-            </div>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a href="#inicio" class="brand">
+      <span class="brand-ball">⚽</span>
+      <span class="brand-name">Seu Esporte Aqui</span>
+    </a>
+    <nav class="nav" id="nav-menu">
+      <a href="#inicio">Início</a>
+      <a href="#locais">Locais</a>
+      <a href="#grupos">Grupos</a>
+      <a href="#campeonatos">Campeonatos</a>
+      <a href="#contato">Contato</a>
+    </nav>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="btn-abrir-login" onclick="abrirAuth('login')">Entrar</button>
+      <button class="btn btn-primary" id="btn-abrir-cadastro" onclick="abrirAuth('cadastro')">Criar conta</button>
+      <span class="user-chip hidden" id="user-chip"></span>
+    </div>
+    <button class="hamburguer" id="hamburguer" aria-label="Abrir menu">☰</button>
+  </div>
+</header>
+
+<main>
+  <section id="inicio" class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-text">
+        <span class="tag">100% gratuito, sem mensalidade</span>
+        <h1>Organize sua partida, sem complicação.</h1>
+        <p>Encontre campos e quadras perto de você, monte grupos com seus amigos, sorteie os times e acompanhe o placar — tudo em um só lugar.</p>
+        <div class="hero-actions">
+          <a href="#locais" class="btn btn-primary btn-lg">Encontrar um local</a>
+          <a href="#grupos" class="btn btn-outline btn-lg">Criar um grupo</a>
         </div>
-    </header>
-
-    <main>
-        <section id="hero" class="relative pt-16 pb-24 md:pt-24 md:pb-32 overflow-hidden">
-            <!-- Background ambient glow -->
-            <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-sportBlue/15 rounded-full blur-3xl pointer-events-none animate-glow"></div>
-            <div class="absolute bottom-0 right-10 w-80 h-80 bg-sportGreen/10 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                    
-                    <!-- Hero text info -->
-                    <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
-                        <div class="inline-flex items-center space-x-2 bg-sportCard border border-slate-700/60 px-4 py-2 rounded-full shadow-inner">
-                            <span class="w-2.5 h-2.5 rounded-full bg-sportGreen animate-pulse"></span>
-                            <span class="text-xs sm:text-sm font-semibold tracking-wide text-slate-300">Desenvolvedor Full-Stack & Atleta Amador</span>
-                        </div>
-                        <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-none">
-                            Conectando <span class="text-sportGreen">Código</span>, <span class="text-sportBlue">Performance</span> e <span class="text-sportAccent">Esporte</span>.
-                        </h1>
-                        <p class="text-lg sm:text-xl text-slate-300 font-normal max-w-2xl mx-auto lg:mx-0">
-                            Olá, sou <span class="text-white font-bold">Matheus Silva</span>. Desenvolvo experiências digitais e aplicativos focados em unir comunidades esportivas, gerenciar ligas e elevar o nível do esporte amador.
-                        </p>
-                        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
-                            <a href="#perfil-section" class="w-full sm:w-auto bg-gradient-to-r from-sportGreen to-emerald-600 text-sportDark font-bold px-8 py-4 rounded-2xl shadow-xl shadow-sportGreen/20 hover:opacity-95 transition-all text-center">
-                                Conhecer Plataforma
-                            </a>
-                            <a href="https://github.com" target="_blank" class="w-full sm:w-auto bg-sportCard hover:bg-slate-800 border border-slate-700 text-white font-semibold px-8 py-4 rounded-2xl transition-all text-center flex items-center justify-center space-x-2">
-                                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                                <span>GitHub Projects</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Hero Visual / Sport Animation -->
-                    <div class="lg:col-span-5 flex flex-col items-center justify-center relative">
-                        <div class="w-full max-w-sm bg-gradient-to-b from-sportCard to-[#10172e] p-8 rounded-3xl border border-slate-700/80 shadow-2xl relative overflow-hidden">
-                            <!-- Court field layout background lines -->
-                            <div class="absolute inset-0 opacity-10 flex items-center justify-center pointer-events-none">
-                                <div class="w-64 h-64 border-2 border-white rounded-full"></div>
-                                <div class="absolute w-full h-0.5 bg-white"></div>
-                            </div>
-                            
-                            <div class="text-center relative z-10 mb-6">
-                                <span class="text-xs uppercase font-extrabold text-sportGreen tracking-wider bg-sportGreen/10 px-3 py-1 rounded-full">Simulação SportDev</span>
-                                <h3 class="text-lg font-bold mt-2 text-white">Matchmaking & Partidas</h3>
-                            </div>
-
-                            <!-- Animated Ball Graphic -->
-                            <div class="h-44 flex items-end justify-center relative my-4">
-                                <!-- Shadow on floor -->
-                                <div class="absolute bottom-2 w-16 h-4 bg-black/40 rounded-full blur-sm animate-pulse"></div>
-                                <!-- Bouncing Ball -->
-                                <div class="w-14 h-14 bg-gradient-to-tr from-orange-500 to-sportAccent rounded-full shadow-lg shadow-sportAccent/50 animate-bounce-custom flex items-center justify-center">
-                                    <svg class="w-8 h-8 text-white/90" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10zM2 12h20"/></svg>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-700/60 text-center relative z-10">
-                                <div>
-                                    <div class="text-xl font-black text-sportGreen counter" data-target="500">0</div>
-                                    <div class="text-xs text-slate-400 font-medium">Jogadores</div>
-                                </div>
-                                <div>
-                                    <div class="text-xl font-black text-sportBlue counter" data-target="50">0</div>
-                                    <div class="text-xs text-slate-400 font-medium">Times</div>
-                                </div>
-                                <div>
-                                    <div class="text-xl font-black text-sportAccent counter" data-target="20">0</div>
-                                    <div class="text-xs text-slate-400 font-medium">Cidades</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <section id="perfil-section" class="py-20 bg-[#070D1F] border-t border-slate-800">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                
-                <!-- Section Header -->
-                <div class="text-center max-w-3xl mx-auto mb-12">
-                    <h2 class="text-3xl sm:text-4xl font-black tracking-tight mb-4">Escolha Seu Perfil de Interesse</h2>
-                    <p class="text-slate-400 text-base sm:text-lg">
-                        O ecossistema SportDev atende a diferentes necessidades. Selecione uma aba abaixo para explorar o conteúdo direcionado:
-                    </p>
-                </div>
-
-                <!-- Audience Tabs / Buttons -->
-                <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mb-12">
-                    <button onclick="switchProfile('dev')" id="tab-dev" class="profile-tab px-6 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center space-x-2 bg-gradient-to-r from-sportGreen to-emerald-600 text-sportDark shadow-lg shadow-sportGreen/20 scale-105">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-                        <span>Desenvolvedor</span>
-                    </button>
-                    <button onclick="switchProfile('empresa')" id="tab-empresa" class="profile-tab px-6 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center space-x-2 bg-sportCard text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        <span>Empresa / Patrocinador</span>
-                    </button>
-                    <button onclick="switchProfile('consumidor')" id="tab-consumidor" class="profile-tab px-6 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center space-x-2 bg-sportCard text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                        <span>Consumidor / Atleta</span>
-                    </button>
-                </div>
-
-                <!-- Dynamic Content Container -->
-                <div class="relative min-h-[500px]">
-
-                    <!-- 1. PROFILE: DESENVOLVEDOR -->
-                    <div id="content-dev" class="profile-content profile-active space-y-12">
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <!-- Column 1: Intro / Bio -->
-                            <div class="lg:col-span-1 bg-sportCard p-8 rounded-3xl border border-slate-700 flex flex-col justify-between">
-                                <div>
-                                    <span class="text-xs uppercase font-extrabold text-sportGreen tracking-wider">Stack & Engenharia</span>
-                                    <h3 class="text-2xl font-bold mt-2 text-white">Stack Tecnológica & Habilidades</h3>
-                                    <p class="text-slate-300 text-sm mt-4 leading-relaxed">
-                                        Especialista em construir aplicações web e mobile altamente performáticas, utilizando arquiteturas modernas, componentização limpa e foco total em experiência de usuário.
-                                    </p>
-                                </div>
-                                <div class="mt-8 pt-6 border-t border-slate-700 flex flex-wrap gap-2">
-                                    <span class="bg-sportDark px-3 py-1.5 rounded-lg text-xs font-bold text-sportGreen border border-slate-700">JavaScript (ES6+)</span>
-                                    <span class="bg-sportDark px-3 py-1.5 rounded-lg text-xs font-bold text-sportBlue border border-slate-700">React & Next.js</span>
-                                    <span class="bg-sportDark px-3 py-1.5 rounded-lg text-xs font-bold text-sportAccent border border-slate-700">Node.js / Express</span>
-                                    <span class="bg-sportDark px-3 py-1.5 rounded-lg text-xs font-bold text-purple-400 border border-slate-700">Tailwind CSS</span>
-                                    <span class="bg-sportDark px-3 py-1.5 rounded-lg text-xs font-bold text-yellow-400 border border-slate-700">PostgreSQL</span>
-                                </div>
-                            </div>
-
-                            <!-- Column 2 & 3: Projects Cards -->
-                            <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <!-- Project 1 -->
-                                <div class="bg-sportCard/80 hover:bg-sportCard p-6 rounded-3xl border border-slate-700/80 transition-all flex flex-col justify-between group">
-                                    <div>
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-10 h-10 rounded-xl bg-sportGreen/10 flex items-center justify-center text-sportGreen font-bold">01</div>
-                                            <span class="text-xs text-slate-400 font-semibold bg-slate-800 px-2.5 py-1 rounded-full">Web App</span>
-                                        </div>
-                                        <h4 class="text-xl font-bold text-white group-hover:text-sportGreen transition-colors">MatchMaker Arena</h4>
-                                        <p class="text-slate-300 text-sm mt-2">Plataforma em tempo real para organizar partidas de futebol society, calcular estatísticas individuais e gerenciar rateio de quadras.</p>
-                                    </div>
-                                    <div class="mt-6 pt-4 border-t border-slate-700/60 flex items-center justify-between">
-                                        <span class="text-xs text-slate-400 font-mono">React • Node • WebSockets</span>
-                                        <a href="https://github.com" target="_blank" class="text-xs font-bold text-sportGreen hover:underline flex items-center space-x-1"><span>Repositório</span> &rarr;</a>
-                                    </div>
-                                </div>
-
-                                <!-- Project 2 -->
-                                <div class="bg-sportCard/80 hover:bg-sportCard p-6 rounded-3xl border border-slate-700/80 transition-all flex flex-col justify-between group">
-                                    <div>
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-10 h-10 rounded-xl bg-sportBlue/10 flex items-center justify-center text-sportBlue font-bold">02</div>
-                                            <span class="text-xs text-slate-400 font-semibold bg-slate-800 px-2.5 py-1 rounded-full">Mobile PWA</span>
-                                        </div>
-                                        <h4 class="text-xl font-bold text-white group-hover:text-sportBlue transition-colors">Liga Amadora Manager</h4>
-                                        <p class="text-slate-300 text-sm mt-2">Sistema completo para campeonatos de várzea com geração automática de tabelas, súmulas digitais e artilharia em tempo real.</p>
-                                    </div>
-                                    <div class="mt-6 pt-4 border-t border-slate-700/60 flex items-center justify-between">
-                                        <span class="text-xs text-slate-400 font-mono">Next.js • Tailwind • PostgreSQL</span>
-                                        <a href="https://github.com" target="_blank" class="text-xs font-bold text-sportBlue hover:underline flex items-center space-x-1"><span>Repositório</span> &rarr;</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Developer Links bar -->
-                        <div class="bg-sportCard border border-slate-700 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-3 h-3 rounded-full bg-sportGreen"></div>
-                                <span class="font-semibold text-sm">Disponível para projetos desafiadores e parcerias inovadoras no esporte.</span>
-                            </div>
-                            <div class="flex items-center space-x-4">
-                                <a href="https://github.com" target="_blank" class="bg-sportDark hover:bg-slate-800 px-5 py-2.5 rounded-xl border border-slate-700 text-xs font-bold transition-all">GitHub</a>
-                                <a href="https://linkedin.com" target="_blank" class="bg-sportDark hover:bg-slate-800 px-5 py-2.5 rounded-xl border border-slate-700 text-xs font-bold transition-all">LinkedIn</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. PROFILE: EMPRESA -->
-                    <div id="content-empresa" class="profile-content profile-hidden space-y-12">
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                            <div class="lg:col-span-6 space-y-6">
-                                <span class="text-xs uppercase font-extrabold text-sportAccent tracking-wider bg-sportAccent/10 px-3 py-1 rounded-full">Soluções Corporativas</span>
-                                <h3 class="text-3xl font-black text-white">Potencialize sua marca com o engajamento do esporte amador</h3>
-                                <p class="text-slate-300 text-base leading-relaxed">
-                                    O SportDev conecta marcas e complexos esportivos diretamente ao público consumidor mais ativo. Oferecemos espaços de patrocínio direcionado, ativações digitais em tempo real e relatórios precisos de alcance.
-                                </p>
-                                <div class="grid grid-cols-2 gap-4 pt-2">
-                                    <div class="bg-sportCard p-4 rounded-2xl border border-slate-700">
-                                        <div class="text-2xl font-black text-sportGreen">+120k</div>
-                                        <div class="text-xs text-slate-400 mt-1">Impressões Mensais</div>
-                                    </div>
-                                    <div class="bg-sportCard p-4 rounded-2xl border border-slate-700">
-                                        <div class="text-2xl font-black text-sportBlue">98%</div>
-                                        <div class="text-xs text-slate-400 mt-1">Retenção de Atletas</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Commercial Contact Form -->
-                            <div class="lg:col-span-6 bg-sportCard p-8 rounded-3xl border border-slate-700 shadow-xl">
-                                <h4 class="text-xl font-bold mb-4 text-white">Contato Comercial</h4>
-                                <form onsubmit="handleFormSubmit(event)" class="space-y-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-300 mb-1">Nome da Empresa / Responsável</label>
-                                        <input type="text" required placeholder="Ex: Arena Esportiva Top" class="w-full bg-sportDark border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sportGreen transition-colors">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-300 mb-1">E-mail Comercial</label>
-                                        <input type="email" required placeholder="contato@suaempresa.com" class="w-full bg-sportDark border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sportGreen transition-colors">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-300 mb-1">Mensagem ou Proposta</label>
-                                        <textarea rows="3" required placeholder="Descreva brevemente seu interesse em nossa plataforma..." class="w-full bg-sportDark border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sportGreen transition-colors"></textarea>
-                                    </div>
-                                    <button type="submit" class="w-full bg-sportAccent hover:bg-orange-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-sportAccent/30 transition-all">
-                                        Enviar Proposta
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. PROFILE: CONSUMIDOR -->
-                    <div id="content-consumidor" class="profile-content profile-hidden space-y-12">
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                            <!-- Consumer features list -->
-                            <div class="lg:col-span-7 space-y-6">
-                                <span class="text-xs uppercase font-extrabold text-sportBlue tracking-wider bg-sportBlue/10 px-3 py-1 rounded-full">Para o Atleta Amador</span>
-                                <h3 class="text-3xl font-black text-white">Nunca mais fique sem jogar aquela partida de fim de semana</h3>
-                                <p class="text-slate-300 text-base leading-relaxed">
-                                    Encontre vagas em partidas próximas, organize horários com seus amigos e acompanhe seu histórico de desempenho e gols como um profissional.
-                                </p>
-                                
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                    <div class="bg-sportCard p-5 rounded-2xl border border-slate-700">
-                                        <div class="w-10 h-10 rounded-xl bg-sportGreen/10 flex items-center justify-center text-sportGreen mb-3 font-bold">⚽</div>
-                                        <h5 class="font-bold text-white mb-1">Matchmaking Rápido</h5>
-                                        <p class="text-xs text-slate-400">Encontre partidas abertas na sua região em segundos.</p>
-                                    </div>
-                                    <div class="bg-sportCard p-5 rounded-2xl border border-slate-700">
-                                        <div class="w-10 h-10 rounded-xl bg-sportBlue/10 flex items-center justify-center text-sportBlue mb-3 font-bold">📊</div>
-                                        <h5 class="font-bold text-white mb-1">Estatísticas Reais</h5>
-                                        <p class="text-xs text-slate-400">Acompanhe gols, assistências e pontuação de fair-play.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Interactive Mockup & CTA -->
-                            <div class="lg:col-span-5 flex flex-col items-center">
-                                <div class="w-full max-w-xs bg-sportCard p-6 rounded-[40px] border-4 border-slate-700 shadow-2xl relative text-center">
-                                    <!-- Phone notch -->
-                                    <div class="w-28 h-4 bg-slate-700 mx-auto rounded-full mb-6"></div>
-                                    
-                                    <div class="bg-sportDark p-4 rounded-2xl border border-slate-800 mb-6 text-left">
-                                        <span class="text-[10px] text-sportGreen font-bold uppercase tracking-widest">Partida Confirmada</span>
-                                        <h4 class="text-sm font-bold text-white mt-1">Futebol Society - Campo A</h4>
-                                        <p class="text-xs text-slate-400 mt-0.5">Sáb, 16:00 • 2 vagas restantes</p>
-                                        <div class="mt-3 flex items-center justify-between">
-                                            <span class="text-[11px] text-slate-300 font-semibold">R$ 25,00 / pessoa</span>
-                                            <span class="bg-sportGreen/20 text-sportGreen text-[10px] font-bold px-2 py-0.5 rounded-full">Garantir Vaga</span>
-                                        </div>
-                                    </div>
-
-                                    <button onclick="triggerDownloadAlert()" class="w-full bg-gradient-to-r from-sportGreen to-emerald-600 text-sportDark font-black py-4 rounded-2xl shadow-xl shadow-sportGreen/20 hover:opacity-95 transition-all text-sm uppercase tracking-wider">
-                                        Baixe o App Agora
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-        </section>
-
-        <section id="contato" class="py-16 border-t border-slate-800 bg-sportDark">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h3 class="text-2xl font-black mb-3">Vamos conversar sobre esporte e tecnologia?</h3>
-                <p class="text-slate-400 text-sm max-w-xl mx-auto mb-8">
-                    Estou sempre aberto a novos projetos, colaborações e desafios na interseção entre desenvolvimento de software e esportes.
-                </p>
-                <div class="inline-flex items-center space-x-4">
-                    <a href="mailto:contato@sportdev.com" class="bg-sportCard hover:bg-slate-800 border border-slate-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all">
-                        contato@sportdev.com
-                    </a>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="bg-[#050914] border-t border-slate-800/80 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center space-x-2">
-                <span class="text-lg font-black tracking-wider bg-gradient-to-r from-white to-sportGreen bg-clip-text text-transparent">Sport<span class="text-sportAccent">Dev</span></span>
-                <span class="text-xs text-slate-500">© 2026 Matheus Silva. Todos os direitos reservados.</span>
-            </div>
-            <div class="flex items-center space-x-6 text-sm text-slate-400">
-                <a href="https://github.com" target="_blank" class="hover:text-white transition-colors">GitHub</a>
-                <a href="https://linkedin.com" target="_blank" class="hover:text-white transition-colors">LinkedIn</a>
-                <a href="#hero" class="hover:text-white transition-colors">Voltar ao Topo</a>
-            </div>
+      </div>
+      <div class="hero-card">
+        <div class="field-lines" aria-hidden="true"></div>
+        <div class="hero-card-content">
+          <span class="badge-live">Partida de hoje</span>
+          <h3>Racha de sábado</h3>
+          <p class="muted">Quadra do bairro • 16h00</p>
+          <div class="hero-stats">
+            <div><strong id="stat-jogadores">0</strong><span>jogadores</span></div>
+            <div><strong id="stat-grupos">0</strong><span>grupos</span></div>
+            <div><strong id="stat-locais">4</strong><span>modalidades</span></div>
+          </div>
         </div>
-    </footer>
-
-    <!-- Custom Modal for Alerts (avoiding native alert) -->
-    <div id="custom-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden">
-        <div class="bg-sportCard border border-slate-700 p-8 rounded-3xl max-w-sm w-full mx-4 text-center shadow-2xl">
-            <div id="modal-icon" class="w-12 h-12 rounded-2xl bg-sportGreen/20 text-sportGreen mx-auto flex items-center justify-center mb-4 text-xl font-bold">✓</div>
-            <h4 id="modal-title" class="text-lg font-bold text-white mb-2">Ação Realizada</h4>
-            <p id="modal-desc" class="text-sm text-slate-300 mb-6">Mensagem informativa exibida aqui.</p>
-            <button onclick="closeModal()" class="w-full bg-sportAccent hover:bg-orange-600 text-white font-bold py-3 rounded-xl transition-all">Entendido</button>
+      </div>
+    </div>
+  </section>
+  <section class="how">
+    <div class="wrap">
+      <h2>Como funciona</h2>
+      <div class="how-grid">
+        <div class="how-step">
+          <span class="step-n">1</span>
+          <h4>Escolha o local</h4>
+          <p>Procure campos de futebol, quadras de vôlei, queimada ou poliesportivas perto de você.</p>
         </div>
+        <div class="how-step">
+          <span class="step-n">2</span>
+          <h4>Monte o grupo</h4>
+          <p>Chame os jogadores, marque o dia e o horário, e acompanhe quem confirmou presença.</p>
+        </div>
+        <div class="how-step">
+          <span class="step-n">3</span>
+          <h4>Jogue e registre</h4>
+          <p>Sorteie os times, jogue e anote o placar e os cartões ao final da partida.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="locais" class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Encontre locais para jogar</h2>
+        <p>Busque campos e quadras perto de você. A busca usa o Google Maps para mostrar locais reais.</p>
+      </div>
+
+      <div class="card search-card">
+        <div class="search-grid">
+          <div class="field">
+            <label for="sel-estado">Estado</label>
+            <select id="sel-estado" onchange="preencherCapital()"></select>
+          </div>
+          <div class="field">
+            <label for="input-cidade">Cidade</label>
+            <input id="input-cidade" type="text" placeholder="Digite sua cidade">
+          </div>
+          <div class="field">
+            <label for="sel-esporte">Modalidade</label>
+            <select id="sel-esporte">
+              <option value="campo de futebol">Futebol</option>
+              <option value="quadra poliesportiva">Quadra poliesportiva</option>
+              <option value="quadra de vôlei">Vôlei</option>
+              <option value="quadra de queimada">Queimada</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="buscarNoMapa()">Buscar</button>
+        </div>
+      </div>
+
+      <div class="maps-grid">
+        <div class="map-frame">
+          <iframe id="mapa-embed" loading="lazy" allowfullscreen
+            src="https://maps.google.com/maps?q=quadra%20poliesportiva&t=&z=12&ie=UTF8&iwloc=&output=embed"></iframe>
+        </div>
+        <div class="maps-side">
+          <h4>Locais em destaque</h4>
+          <div id="locais-exemplo"></div>
+          <p class="fineprint">Estes são exemplos ilustrativos. Os resultados reais aparecem diretamente no mapa quando você faz uma busca.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRUPOS -->
+  <section id="grupos" class="section alt">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Grupos de partida</h2>
+        <p>Crie um grupo, chame os jogadores e organize tudo até a hora do jogo.</p>
+        <button class="btn btn-primary" onclick="abrirModal('modal-grupo')">+ Criar grupo</button>
+      </div>
+      <div id="lista-grupos" class="cards-grid"></div>
+    </div>
+  </section>
+
+  <section id="campeonatos" class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Campeonatos</h2>
+        <p>Organize um campeonato entre times: cadastre os times, os confrontos e acompanhe a classificação.</p>
+        <button class="btn btn-primary" onclick="abrirModal('modal-campeonato')">+ Criar campeonato</button>
+      </div>
+      <div id="lista-campeonatos" class="cards-grid"></div>
+    </div>
+  </section>
+
+
+  <section id="contato" class="section alt">
+    <div class="wrap contato-wrap">
+      <div>
+        <h2>Fale com a gente</h2>
+        <p>Dúvidas, parcerias com quadras e complexos esportivos, ou sugestões — mande sua mensagem.</p>
+      </div>
+      <form class="card contato-form" onsubmit="enviarContato(event)">
+        <div class="field">
+          <label for="c-nome">Nome</label>
+          <input id="c-nome" type="text" required>
+        </div>
+        <div class="field">
+          <label for="c-email">E-mail</label>
+          <input id="c-email" type="email" required>
+        </div>
+        <div class="field">
+          <label for="c-msg">Mensagem</label>
+          <textarea id="c-msg" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Enviar mensagem</button>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <span class="brand-name small">Seu Esporte Aqui</span>
+    <span class="muted">Plataforma gratuita criada por Aires Vinicius.</span>
+  </div>
+</footer>
+
+
+<button class="chat-fab" id="chat-fab" onclick="alternarChat()" aria-label="Abrir assistente">💬</button>
+<div class="chat-box hidden" id="chat-box">
+  <div class="chat-head">
+    <span>Assistente</span>
+    <button onclick="alternarChat()" aria-label="Fechar">✕</button>
+  </div>
+  <div class="chat-body" id="chat-body"></div>
+  <form class="chat-input" onsubmit="enviarMensagemBot(event)">
+    <input id="chat-texto" type="text" placeholder="Digite sua pergunta...">
+    <button type="submit">Enviar</button>
+  </form>
+</div>
+
+<!-- ===== MODAL: LOGIN / CADASTRO ===== -->
+<div class="modal hidden" id="modal-auth">
+  <div class="modal-card">
+    <button class="modal-close" onclick="fecharModal('modal-auth')">✕</button>
+    <div class="auth-tabs">
+      <button id="auth-tab-login" class="auth-tab active" onclick="mudarAbaAuth('login')">Entrar</button>
+      <button id="auth-tab-cadastro" class="auth-tab" onclick="mudarAbaAuth('cadastro')">Criar conta</button>
     </div>
 
-    <script>
-        // Switcher logic for audience tabs
-        function switchProfile(profileKey) {
-            const tabs = ['dev', 'empresa', 'consumidor'];
-            
-            tabs.forEach(tab => {
-                const btn = document.getElementById(`tab-${tab}`);
-                const content = document.getElementById(`content-${tab}`);
-                
-                if (tab === profileKey) {
-                    btn.className = "profile-tab px-6 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center space-x-2 bg-gradient-to-r from-sportGreen to-emerald-600 text-sportDark shadow-lg shadow-sportGreen/20 scale-105";
-                    content.classList.remove('profile-hidden');
-                    content.classList.add('profile-active');
-                } else {
-                    btn.className = "profile-tab px-6 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center space-x-2 bg-sportCard text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700";
-                    content.classList.remove('profile-active');
-                    content.classList.add('profile-hidden');
-                }
-            });
-        }
+    <form id="form-login" onsubmit="fazerLogin(event)">
+      <div class="field">
+        <label>E-mail</label>
+        <input id="login-email" type="email" required>
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input id="login-senha" type="password" required minlength="4">
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Entrar</button>
+    </form>
 
-        // Handle corporate form submission
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            showModal('Proposta Enviada!', 'Obrigado pelo contato corporativo. Retornaremos em breve com mais detalhes sobre parcerias esportivas.');
-            e.target.reset();
-        }
+    <form id="form-cadastro" class="hidden" onsubmit="fazerCadastro(event)">
+      <div class="field">
+        <label>Nome</label>
+        <input id="cad-nome" type="text" required>
+      </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input id="cad-email" type="email" required>
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input id="cad-senha" type="password" required minlength="4">
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Criar conta</button>
+    </form>
+    <p class="fineprint">Seus dados ficam guardados neste navegador, neste momento, para fins de demonstração.</p>
+  </div>
+</div>
 
-        // Trigger consumer app download alert
-        function triggerDownloadAlert() {
-            showModal('App SportDev', 'O link de download para iOS e Android será enviado para sua loja de aplicativos preferida.');
-        }
+<div class="modal hidden" id="modal-grupo">
+  <div class="modal-card">
+    <button class="modal-close" onclick="fecharModal('modal-grupo')">✕</button>
+    <h3>Criar grupo de partida</h3>
+    <form onsubmit="criarGrupo(event)">
+      <div class="field">
+        <label>Nome do grupo</label>
+        <input id="g-nome" type="text" required placeholder="Ex: Racha do Bairro">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Modalidade</label>
+          <select id="g-esporte">
+            <option>Futebol</option>
+            <option>Vôlei</option>
+            <option>Queimada</option>
+            <option>Quadra poliesportiva</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Local</label>
+          <input id="g-local" type="text" placeholder="Ex: Quadra do bairro">
+        </div>
+      </div>
+      <div class="field">
+        <label>Data e horário da partida</label>
+        <input id="g-datahora" type="datetime-local" required>
+      </div>
+      <div class="field">
+        <label>Jogadores (separe os nomes por vírgula)</label>
+        <textarea id="g-jogadores" rows="2" placeholder="Ex: João, Pedro, Ana, Marcos"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Criar grupo</button>
+    </form>
+  </div>
+</div>
 
-        // Custom Modal utility
-        function showModal(title, desc) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-desc').innerText = desc;
-            document.getElementById('custom-modal').classList.remove('hidden');
-        }
+<!-- ===== MODAL: DETALHE DO GRUPO ===== -->
+<div class="modal hidden" id="modal-grupo-detalhe">
+  <div class="modal-card wide">
+    <button class="modal-close" onclick="fecharModal('modal-grupo-detalhe')">✕</button>
+    <div id="grupo-detalhe-conteudo"></div>
+  </div>
+</div>
 
-        function closeModal() {
-            document.getElementById('custom-modal').classList.add('hidden');
-        }
+<!-- ===== MODAL: CRIAR CAMPEONATO ===== -->
+<div class="modal hidden" id="modal-campeonato">
+  <div class="modal-card">
+    <button class="modal-close" onclick="fecharModal('modal-campeonato')">✕</button>
+    <h3>Criar campeonato</h3>
+    <form onsubmit="criarCampeonato(event)">
+      <div class="field">
+        <label>Nome do campeonato</label>
+        <input id="camp-nome" type="text" required placeholder="Ex: Copa da Rua">
+      </div>
+      <div class="field">
+        <label>Times participantes (separe os nomes por vírgula)</label>
+        <textarea id="camp-times" rows="2" required placeholder="Ex: Leões FC, Furacão, Amigos do Bar"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Criar campeonato</button>
+    </form>
+  </div>
+</div>
 
-        // Intersection Observer for animated counters
-        document.addEventListener("DOMContentLoaded", () => {
-            const counters = document.querySelectorAll('.counter');
-            let animated = false;
+<!-- ===== MODAL: DETALHE DO CAMPEONATO ===== -->
+<div class="modal hidden" id="modal-campeonato-detalhe">
+  <div class="modal-card wide">
+    <button class="modal-close" onclick="fecharModal('modal-campeonato-detalhe')">✕</button>
+    <div id="campeonato-detalhe-conteudo"></div>
+  </div>
+</div>
 
-            const runCounters = () => {
-                counters.forEach(counter => {
-                    const target = +counter.getAttribute('data-target');
-                    let count = 0;
-                    const speed = target / 30; // animation speed step
 
-                    const updateCount = () => {
-                        count += speed;
-                        if (count < target) {
-                            counter.innerText = Math.ceil(count) + "+";
-                            setTimeout(updateCount, 40);
-                        } else {
-                            counter.innerText = target + "+";
-                        }
-                    };
-                    updateCount();
-                });
-            };
+<div class="toast hidden" id="toast"></div>
 
-            const observerOptions = {
-                root: null,
-                threshold: 0.3
-            };
 
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting && !animated) {
-                        runCounters();
-                        animated = true;
-                        observer.disconnect();
-                    }
-                });
-            }, observerOptions);
+<div class="admin-overlay hidden" id="admin-overlay">
+  <div class="admin-box">
+    <div id="admin-login">
+      <h3>Painel administrativo</h3>
+      <p class="muted">Acesso restrito. Informe o e-mail autorizado.</p>
+      <div class="field">
+        <label>E-mail autorizado</label>
+        <input id="admin-email" type="email" placeholder="seuemail@exemplo.com">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="entrarAdmin()">Entrar</button>
+      <p class="fineprint" id="admin-erro"></p>
+    </div>
+    <div id="admin-dashboard" class="hidden"></div>
+  </div>
+</div>
 
-            const heroSection = document.getElementById('hero');
-            if (heroSection) {
-                observer.observe(heroSection);
-            }
-        });
-    </script>
+<script src="script.js"></script>
 </body>
 </html>
