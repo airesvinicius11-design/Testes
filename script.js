@@ -1,4 +1,4 @@
-/* =========================================================
+/* ========================================================
    SEU ESPORTE AQUI - script.js
    Aviso importante (leia antes de colocar em produção):
    Este arquivo guarda os dados no navegador do próprio
