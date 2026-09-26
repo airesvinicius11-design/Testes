@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seu Esporte Aqui</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a href="#inicio" class="brand">
+      <span class="brand-ball">⚽</span>
+      <span class="brand-name">Seu Esporte Aqui</span>
+    </a>
+    <nav class="nav" id="nav-menu">
+      <a href="#inicio">Início</a>
+      <a href="#locais">Locais</a>
+      <a href="#grupos">Grupos</a>
+      <a href="#campeonatos">Campeonatos</a>
+      <a href="#contato">Contato</a>
+    </nav>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="btn-abrir-login" onclick="abrirAuth('login')">Entrar</button>
+      <button class="btn btn-primary" id="btn-abrir-cadastro" onclick="abrirAuth('cadastro')">Criar conta</button>
+      <span class="user-chip hidden" id="user-chip"></span>
+    </div>
+    <button class="hamburguer" id="hamburguer" aria-label="Abrir menu">☰</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section id="inicio" class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-text">
+        <span class="tag">100% gratuito, sem mensalidade</span>
+        <h1>Organize sua partida, sem complicação.</h1>
+        <p>Encontre campos e quadras perto de você, monte grupos com seus amigos, sorteie os times e acompanhe o placar — tudo em um só lugar.</p>
+        <div class="hero-actions">
+          <a href="#locais" class="btn btn-primary btn-lg">Encontrar um local</a>
+          <a href="#grupos" class="btn btn-outline btn-lg">Criar um grupo</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="field-lines" aria-hidden="true"></div>
+        <div class="hero-card-content">
+          <span class="badge-live">Partida de hoje</span>
+          <h3>Racha de sábado</h3>
+          <p class="muted">Quadra do bairro • 16h00</p>
+          <div class="hero-stats">
+            <div><strong id="stat-jogadores">0</strong><span>jogadores</span></div>
+            <div><strong id="stat-grupos">0</strong><span>grupos</span></div>
+            <div><strong id="stat-locais">4</strong><span>modalidades</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section class="how">
+    <div class="wrap">
+      <h2>Como funciona</h2>
+      <div class="how-grid">
+        <div class="how-step">
+          <span class="step-n">1</span>
+          <h4>Escolha o local</h4>
+          <p>Procure campos de futebol, quadras de vôlei, queimada ou poliesportivas perto de você.</p>
+        </div>
+        <div class="how-step">
+          <span class="step-n">2</span>
+          <h4>Monte o grupo</h4>
+          <p>Chame os jogadores, marque o dia e o horário, e acompanhe quem confirmou presença.</p>
+        </div>
+        <div class="how-step">
+          <span class="step-n">3</span>
+          <h4>Jogue e registre</h4>
+          <p>Sorteie os times, jogue e anote o placar e os cartões ao final da partida.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOCAIS -->
+  <section id="locais" class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Encontre locais para jogar</h2>
+        <p>Busque campos e quadras perto de você. A busca usa o Google Maps para mostrar locais reais.</p>
+      </div>
+
+      <div class="card search-card">
+        <div class="search-grid">
+          <div class="field">
+            <label for="sel-estado">Estado</label>
+            <select id="sel-estado" onchange="preencherCapital()"></select>
+          </div>
+          <div class="field">
+            <label for="input-cidade">Cidade</label>
+            <input id="input-cidade" type="text" placeholder="Digite sua cidade">
+          </div>
+          <div class="field">
+            <label for="sel-esporte">Modalidade</label>
+            <select id="sel-esporte">
+              <option value="campo de futebol">Futebol</option>
+              <option value="quadra poliesportiva">Quadra poliesportiva</option>
+              <option value="quadra de vôlei">Vôlei</option>
+              <option value="quadra de queimada">Queimada</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="buscarNoMapa()">Buscar</button>
+        </div>
+      </div>
+
+      <div class="maps-grid">
+        <div class="map-frame">
+          <iframe id="mapa-embed" loading="lazy" allowfullscreen
+            src="https://maps.google.com/maps?q=quadra%20poliesportiva&t=&z=12&ie=UTF8&iwloc=&output=embed"></iframe>
+        </div>
+        <div class="maps-side">
+          <h4>Locais em destaque</h4>
+          <div id="locais-exemplo"></div>
+          <p class="fineprint">Estes são exemplos ilustrativos. Os resultados reais aparecem diretamente no mapa quando você faz uma busca.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRUPOS -->
+  <section id="grupos" class="section alt">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Grupos de partida</h2>
+        <p>Crie um grupo, chame os jogadores e organize tudo até a hora do jogo.</p>
+        <button class="btn btn-primary" onclick="abrirModal('modal-grupo')">+ Criar grupo</button>
+      </div>
+      <div id="lista-grupos" class="cards-grid"></div>
+    </div>
+  </section>
+
+  <!-- CAMPEONATOS -->
+  <section id="campeonatos" class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Campeonatos</h2>
+        <p>Organize um campeonato entre times: cadastre os times, os confrontos e acompanhe a classificação.</p>
+        <button class="btn btn-primary" onclick="abrirModal('modal-campeonato')">+ Criar campeonato</button>
+      </div>
+      <div id="lista-campeonatos" class="cards-grid"></div>
+    </div>
+  </section>
+
+  <!-- CONTATO -->
+  <section id="contato" class="section alt">
+    <div class="wrap contato-wrap">
+      <div>
+        <h2>Fale com a gente</h2>
+        <p>Dúvidas, parcerias com quadras e complexos esportivos, ou sugestões — mande sua mensagem.</p>
+      </div>
+      <form class="card contato-form" onsubmit="enviarContato(event)">
+        <div class="field">
+          <label for="c-nome">Nome</label>
+          <input id="c-nome" type="text" required>
+        </div>
+        <div class="field">
+          <label for="c-email">E-mail</label>
+          <input id="c-email" type="email" required>
+        </div>
+        <div class="field">
+          <label for="c-msg">Mensagem</label>
+          <textarea id="c-msg" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Enviar mensagem</button>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <span class="brand-name small">Seu Esporte Aqui</span>
+    <span class="muted">Plataforma gratuita criada por Aires Vinicius.</span>
+  </div>
+</footer>
+
+<!-- ===== ASSISTENTE (chat) ===== -->
+<button class="chat-fab" id="chat-fab" onclick="alternarChat()" aria-label="Abrir assistente">💬</button>
+<div class="chat-box hidden" id="chat-box">
+  <div class="chat-head">
+    <span>Assistente</span>
+    <button onclick="alternarChat()" aria-label="Fechar">✕</button>
+  </div>
+  <div class="chat-body" id="chat-body"></div>
+  <form class="chat-input" onsubmit="enviarMensagemBot(event)">
+    <input id="chat-texto" type="text" placeholder="Digite sua pergunta...">
+    <button type="submit">Enviar</button>
+  </form>
+</div>
+
+<!-- ===== MODAL: LOGIN / CADASTRO ===== -->
+<div class="modal hidden" id="modal-auth">
+  <div class="modal-card">
+    <button class="modal-close" onclick="fecharModal('modal-auth')">✕</button>
+    <div class="auth-tabs">
+      <button id="auth-tab-login" class="auth-tab active" onclick="mudarAbaAuth('login')">Entrar</button>
+      <button id="auth-tab-cadastro" class="auth-tab" onclick="mudarAbaAuth('cadastro')">Criar conta</button>
+    </div>
+
+    <form id="form-login" onsubmit="fazerLogin(event)">
+      <div class="field">
+        <label>E-mail</label>
+        <input id="login-email" type="email" required>
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input id="login-senha" type="password" required minlength="4">
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Entrar</button>
+    </form>
+
+    <form id="form-cadastro" class="hidden" onsubmit="fazerCadastro(event)">
+      <div class="field">
+        <label>Nome</label>
+        <input id="cad-nome" type="text" required>
+      </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input id="cad-email" type="email" required>
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input id="cad-senha" type="password" required minlength="4">
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Criar conta</button>
+    </form>
+    <p class="fineprint">Seus dados ficam guardados neste navegador, neste momento, para fins de demonstração.</p>
+  </div>
+</div>
+
+<!-- ===== MODAL: CRIAR GRUPO ===== -->
+<div class="modal hidden" id="modal-grupo">
+  <div class="modal-card">
+    <button class="modal-close" onclick="fecharModal('modal-grupo')">✕</button>
+    <h3>Criar grupo de partida</h3>
+    <form onsubmit="criarGrupo(event)">
+      <div class="field">
+        <label>Nome do grupo</label>
+        <input id="g-nome" type="text" required placeholder="Ex: Racha do Bairro">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Modalidade</label>
+          <select id="g-esporte">
+            <option>Futebol</option>
+            <option>Vôlei</option>
+            <option>Queimada</option>
+            <option>Quadra poliesportiva</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Local</label>
+          <input id="g-local" type="text" placeholder="Ex: Quadra do bairro">
+        </div>
+      </div>
+      <div class="field">
+        <label>Data e horário da partida</label>
+        <input id="g-datahora" type="datetime-local" required>
+      </div>
+      <div class="field">
+        <label>Jogadores (separe os nomes por vírgula)</label>
+        <textarea id="g-jogadores" rows="2" placeholder="Ex: João, Pedro, Ana, Marcos"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Criar grupo</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MODAL: DETALHE DO GRUPO ===== -->
+<div class="modal hidden" id="modal-grupo-detalhe">
+  <div class="modal-card wide">
+    <button class="modal-close" onclick="fecharModal('modal-grupo-detalhe')">✕</button>
+    <div id="grupo-detalhe-conteudo"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL: CRIAR CAMPEONATO ===== -->
+<div class="modal hidden" id="modal-campeonato">
+  <div class="modal-card">
+    <button class="modal-close" onclick="fecharModal('modal-campeonato')">✕</button>
+    <h3>Criar campeonato</h3>
+    <form onsubmit="criarCampeonato(event)">
+      <div class="field">
+        <label>Nome do campeonato</label>
+        <input id="camp-nome" type="text" required placeholder="Ex: Copa da Rua">
+      </div>
+      <div class="field">
+        <label>Times participantes (separe os nomes por vírgula)</label>
+        <textarea id="camp-times" rows="2" required placeholder="Ex: Leões FC, Furacão, Amigos do Bar"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Criar campeonato</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MODAL: DETALHE DO CAMPEONATO ===== -->
+<div class="modal hidden" id="modal-campeonato-detalhe">
+  <div class="modal-card wide">
+    <button class="modal-close" onclick="fecharModal('modal-campeonato-detalhe')">✕</button>
+    <div id="campeonato-detalhe-conteudo"></div>
+  </div>
+</div>
+
+<!-- ===== AVISO SIMPLES ===== -->
+<div class="toast hidden" id="toast"></div>
+
+<!-- ===== PAINEL ADMINISTRATIVO (acesso apenas por link direto) ===== -->
+<div class="admin-overlay hidden" id="admin-overlay">
+  <div class="admin-box">
+    <div id="admin-login">
+      <h3>Painel administrativo</h3>
+      <p class="muted">Acesso restrito. Informe o e-mail autorizado.</p>
+      <div class="field">
+        <label>E-mail autorizado</label>
+        <input id="admin-email" type="email" placeholder="seuemail@exemplo.com">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="entrarAdmin()">Entrar</button>
+      <p class="fineprint" id="admin-erro"></p>
+    </div>
+    <div id="admin-dashboard" class="hidden"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
