@@ -1,13 +1,8 @@
-/* ========================================================
+/* =========================================================
    SEU ESPORTE AQUI - script.js
-   Aviso importante (leia antes de colocar em produção):
-   Este arquivo guarda os dados no navegador do próprio
-   visitante (localStorage), só para fins de demonstração.
-   Não é um banco de dados real, não é criptografado e não
-   substitui um sistema de login seguro. Para uso real, os
-   cadastros, mensagens e o painel administrativo precisam
-   de um servidor com banco de dados e autenticação de verdade.
    ========================================================= */
+
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1553480042493771937/QwQ5SjvITUgnB6dUn2sCbNNsQvpcMTZ2Q6tXQ1HIHVtNr3Hh3Q-DGrynZmGdEjrqM2R';
 
 const CHAVES = {
   usuarios: 'sea_usuarios',
@@ -15,8 +10,10 @@ const CHAVES = {
   leads: 'sea_leads',
   grupos: 'sea_grupos',
   campeonatos: 'sea_campeonatos',
-  adminEmails: 'sea_admin_emails'
+  adminEmails: 'sea_admin_emails',
+  resets: 'sea_resets'
 };
+
 const ESTADOS = [
   ['AC','Acre','Rio Branco'],['AL','Alagoas','Maceió'],['AP','Amapá','Macapá'],
   ['AM','Amazonas','Manaus'],['BA','Bahia','Salvador'],['CE','Ceará','Fortaleza'],
@@ -30,94 +27,380 @@ const ESTADOS = [
   ['SP','São Paulo','São Paulo'],['SE','Sergipe','Aracaju'],['TO','Tocantins','Palmas']
 ];
 
+/* ---------------- Utilidades ---------------- */
 function lerLista(chave){
   try{ return JSON.parse(localStorage.getItem(chave)) || []; }catch(e){ return []; }
 }
 function salvarLista(chave, lista){ localStorage.setItem(chave, JSON.stringify(lista)); }
 function gerarId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
+// Sanitização para evitar @everyone e formatação quebrada no Discord
+function sanitizarTexto(str) {
+  if (!str) return '';
+  return str
+    .replace(/@everyone/gi, '@\u200Beveryone')
+    .replace(/@here/gi, '@\u200Bhere')
+    .replace(/```/g, '`\u200B`\u200B`');
+}
 
+// Criptografia SHA-256 para senhas
+async function hashSHA256(str) {
+  const msgUint8 = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Disparo genérico para Discord Webhook
+async function enviarWebhookDiscord(payload) {
+  try {
+    const res = await fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('Erro Webhook Discord:', err);
+    return false;
+  }
+}
+
+/* ---------------- Toast ---------------- */
 function mostrarToast(texto){
   const t = document.getElementById('toast');
+  if(!t) return;
   t.textContent = texto;
   t.classList.remove('hidden');
   clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(()=> t.classList.add('hidden'), 3200);
+  window._toastTimer = setTimeout(()=> t.classList.add('hidden'), 3500);
 }
 
-function abrirModal(id){ document.getElementById(id).classList.remove('hidden'); }
-function fecharModal(id){ document.getElementById(id).classList.add('hidden'); }
+/* ---------------- Modais & Auth UI ---------------- */
+function abrirModal(id){ 
+  const el = document.getElementById(id);
+  if(el) el.classList.remove('hidden'); 
+}
+function fecharModal(id){ 
+  const el = document.getElementById(id);
+  if(el) el.classList.add('hidden'); 
+}
+
+function alternarVisibilidadeSenha(idInput, btn) {
+  const input = document.getElementById(idInput);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
 
 function abrirAuth(aba){
   abrirModal('modal-auth');
   mudarAbaAuth(aba);
 }
+
 function mudarAbaAuth(aba){
-  const login = aba === 'login';
-  document.getElementById('auth-tab-login').classList.toggle('active', login);
-  document.getElementById('auth-tab-cadastro').classList.toggle('active', !login);
-  document.getElementById('form-login').classList.toggle('hidden', !login);
-  document.getElementById('form-cadastro').classList.toggle('hidden', login);
+  const tabLogin = document.getElementById('auth-tab-login');
+  const tabCad = document.getElementById('auth-tab-cadastro');
+  const header = document.getElementById('auth-tabs-header');
+
+  const formLogin = document.getElementById('form-login');
+  const formCadastro = document.getElementById('form-cadastro');
+  const formEsq1 = document.getElementById('form-esqueci-1');
+  const formEsq2 = document.getElementById('form-esqueci-2');
+
+  if(header) header.classList.remove('hidden');
+
+  formLogin.classList.add('hidden');
+  formCadastro.classList.add('hidden');
+  if(formEsq1) formEsq1.classList.add('hidden');
+  if(formEsq2) formEsq2.classList.add('hidden');
+
+  if (aba === 'login') {
+    if(tabLogin) tabLogin.classList.add('active');
+    if(tabCad) tabCad.classList.remove('active');
+    formLogin.classList.remove('hidden');
+  } else if (aba === 'cadastro') {
+    if(tabLogin) tabLogin.classList.remove('active');
+    if(tabCad) tabCad.classList.add('active');
+    formCadastro.classList.remove('hidden');
+  } else if (aba === 'esqueci') {
+    if(header) header.classList.add('hidden');
+    if(formEsq1) formEsq1.classList.remove('hidden');
+  }
 }
-function fazerCadastro(e){
+
+/* ================= AUTENTICAÇÃO & DISCORD ================= */
+async function fazerCadastro(e){
   e.preventDefault();
+  const btn = document.getElementById('btn-submit-cad');
   const nome = document.getElementById('cad-nome').value.trim();
+  const idade = document.getElementById('cad-idade').value.trim();
   const email = document.getElementById('cad-email').value.trim().toLowerCase();
   const senha = document.getElementById('cad-senha').value;
+
   const usuarios = lerLista(CHAVES.usuarios);
   if(usuarios.some(u => u.email === email)){
-    mostrarToast('Já existe uma conta com este e-mail.');
+    mostrarToast('Já existe uma conta cadastrada com este e-mail.');
     return;
   }
-  usuarios.push({ nome, email, senha });
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Criando conta...'; }
+
+  // Senha é convertida para SHA-256 localmente
+  const senhaHash = await hashSHA256(senha);
+
+  // Notifica no Discord (Apenas nome, e-mail e idade - SEM SENHA)
+  const payload = {
+    embeds: [{
+      title: "🆕 Nova Conta Criada",
+      color: 65280, // Verde
+      fields: [
+        { name: "👤 Nome", value: sanitizarTexto(nome), inline: true },
+        { name: "📧 E-mail", value: sanitizarTexto(email), inline: true },
+        { name: "🎂 Idade", value: sanitizarTexto(idade) + " anos", inline: true }
+      ],
+      timestamp: new Date().toISOString()
+    }]
+  };
+  await enviarWebhookDiscord(payload);
+
+  usuarios.push({ nome, idade, email, senhaHash });
   salvarLista(CHAVES.usuarios, usuarios);
   localStorage.setItem(CHAVES.sessao, JSON.stringify({ nome, email }));
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Criar conta'; }
   fecharModal('modal-auth');
   atualizarChipUsuario();
-  mostrarToast('Conta criada. Bem-vindo(a), ' + nome + '!');
+  mostrarToast('Conta criada com sucesso! Bem-vindo(a), ' + nome + '!');
 }
-function fazerLogin(e){
+
+async function fazerLogin(e){
   e.preventDefault();
+  const btn = document.getElementById('btn-submit-login');
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const senha = document.getElementById('login-senha').value;
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Entrando...'; }
+
+  const senhaHash = await hashSHA256(senha);
   const usuarios = lerLista(CHAVES.usuarios);
-  const usuario = usuarios.find(u => u.email === email && u.senha === senha);
+  const usuario = usuarios.find(u => u.email === email && u.senhaHash === senhaHash);
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Entrar'; }
+
   if(!usuario){
     mostrarToast('E-mail ou senha incorretos.');
     return;
   }
+
   localStorage.setItem(CHAVES.sessao, JSON.stringify({ nome: usuario.nome, email: usuario.email }));
   fecharModal('modal-auth');
   atualizarChipUsuario();
   mostrarToast('Login realizado. Boas partidas, ' + usuario.nome + '!');
 }
+
+function fazerLogout(){
+  localStorage.removeItem(CHAVES.sessao);
+  atualizarChipUsuario();
+  mostrarToast('Sessão encerrada.');
+}
+
 function atualizarChipUsuario(){
   const sessao = JSON.parse(localStorage.getItem(CHAVES.sessao) || 'null');
+  const container = document.getElementById('user-chip-container');
   const chip = document.getElementById('user-chip');
   const btnLogin = document.getElementById('btn-abrir-login');
   const btnCadastro = document.getElementById('btn-abrir-cadastro');
+
   if(sessao){
-    chip.textContent = sessao.nome;
-    chip.classList.remove('hidden');
-    btnLogin.classList.add('hidden');
-    btnCadastro.classList.add('hidden');
+    if(chip) chip.textContent = sessao.nome;
+    if(container) container.classList.remove('hidden');
+    if(btnLogin) btnLogin.classList.add('hidden');
+    if(btnCadastro) btnCadastro.classList.add('hidden');
   }else{
-    chip.classList.add('hidden');
-    btnLogin.classList.remove('hidden');
-    btnCadastro.classList.remove('hidden');
+    if(container) container.classList.add('hidden');
+    if(btnLogin) btnLogin.classList.remove('hidden');
+    if(btnCadastro) btnCadastro.classList.remove('hidden');
   }
 }
 
+/* ================= ESQUECI MINHA SENHA ================= */
+async function solicitarCodigoReset(e){
+  e.preventDefault();
+  const btn = document.getElementById('btn-submit-reset1');
+  const email = document.getElementById('reset-email').value.trim().toLowerCase();
+  const usuarios = lerLista(CHAVES.usuarios);
 
+  const usuario = usuarios.find(u => u.email === email);
+  if(!usuario){
+    mostrarToast('E-mail não encontrado no sistema.');
+    return;
+  }
+
+  // Limite de tentativas para evitar abuso
+  const resets = lerLista(CHAVES.resets);
+  const hoje = new Date().toDateString();
+  const tentativas = resets.filter(r => r.email === email && new Date(r.data).toDateString() === hoje);
+
+  if(tentativas.length >= 3){
+    mostrarToast('Limite diário de reenvios atingido (máx. 3 vezes por dia).');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+
+  const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+  const validade = Date.now() + 10 * 60 * 1000; // Validade de 10 minutos
+
+  resets.push({ email, codigo, validade, data: new Date().toISOString() });
+  salvarLista(CHAVES.resets, resets);
+
+  // Envia código para o Webhook do Discord
+  const payload = {
+    embeds: [{
+      title: "🔑 Código de Verificação (Redefinição de Senha)",
+      color: 16776960, // Amarelo
+      description: `O usuário **${sanitizarTexto(usuario.nome)}** (${sanitizarTexto(email)}) solicitou a redefinição de senha.`,
+      fields: [
+        { name: "🎲 Código de Verificação", value: `**${codigo}**`, inline: true },
+        { name: "⏳ Validade", value: "10 minutos", inline: true }
+      ],
+      timestamp: new Date().toISOString()
+    }]
+  };
+
+  await enviarWebhookDiscord(payload);
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Enviar código'; }
+  mostrarToast('Código enviado para o Discord! Verifique para prosseguir.');
+
+  window._emailResetAtual = email;
+  document.getElementById('form-esqueci-1').classList.add('hidden');
+  document.getElementById('form-esqueci-2').classList.remove('hidden');
+}
+
+async function confirmarResetSenha(e){
+  e.preventDefault();
+  const btn = document.getElementById('btn-submit-reset2');
+  const codigo = document.getElementById('reset-codigo').value.trim();
+  const novaSenha = document.getElementById('reset-nova-senha').value;
+  const email = window._emailResetAtual;
+
+  const resets = lerLista(CHAVES.resets);
+  const resetValido = resets.find(r => r.email === email && r.codigo === codigo && Date.now() <= r.validade);
+
+  if(!resetValido){
+    mostrarToast('Código inválido ou expirado.');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Redefinindo...'; }
+
+  const novaSenhaHash = await hashSHA256(novaSenha);
+  const usuarios = lerLista(CHAVES.usuarios).map(u => {
+    if(u.email === email) u.senhaHash = novaSenhaHash;
+    return u;
+  });
+  salvarLista(CHAVES.usuarios, usuarios);
+
+  // Notifica o Discord informando que a senha foi redefinida (SEM VALOR DA SENHA)
+  const payload = {
+    embeds: [{
+      title: "🔒 Senha Redefinida com Sucesso",
+      color: 3447003, // Azul
+      description: `A senha do e-mail **${sanitizarTexto(email)}** foi alterada com sucesso.`,
+      timestamp: new Date().toISOString()
+    }]
+  };
+  await enviarWebhookDiscord(payload);
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Redefinir senha'; }
+
+  mostrarToast('Senha alterada com sucesso! Faça login com a nova senha.');
+  mudarAbaAuth('login');
+}
+
+/* ================= CONTATO (Prevenção contra Spam & Discord) ================= */
+const DISCORD_WEBHOOK2URL = 'https://discord.com/api/webhooks/1553480042493771937/QwQ5SjvITUgnB6dUn2sCbNNsQvpcMTZ2Q6tXQ1HIHVtNr3Hh3Q-DGrynZmGdEjrqM2Ro';
+
+window._ultimoEnvioContato = 0;
+
+async function enviarContato(e){
+  e.preventDefault();
+  
+  const agora = Date.now();
+  if (agora - window._ultimoEnvioContato < 30000) { // 30 segundos entre envios
+    const restante = Math.ceil((30000 - (agora - window._ultimoEnvioContato)) / 1000);
+    mostrarToast(`Aguarde ${restante}s antes de enviar outra mensagem.`);
+    return;
+  }
+
+  const nomeInput = document.getElementById('c-nome');
+  const emailInput = document.getElementById('c-email');
+  const msgInput = document.getElementById('c-msg');
+  const btnSubmit = document.getElementById('btn-enviar-contato');
+
+  const nome = sanitizarTexto(nomeInput.value.trim());
+  const email = sanitizarTexto(emailInput.value.trim());
+  const mensagem = sanitizarTexto(msgInput ? msgInput.value.trim() : '');
+
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Enviando...';
+  }
+
+  const payload = {
+    embeds: [{
+      title: "📩 Novo Contato Recebido",
+      color: 44799,
+      fields: [
+        { name: "👤 Nome", value: nome || "Não informado", inline: true },
+        { name: "📧 E-mail", value: email || "Não informado", inline: true },
+        { name: "💬 Mensagem", value: mensagem || "Nenhuma mensagem enviada." }
+      ],
+      timestamp: new Date().toISOString(),
+      footer: { text: "Seu Esporte Aqui - Formulário de Contato" }
+    }]
+  };
+
+  const sucesso = await enviarWebhookDiscord(payload);
+
+  if (sucesso) {
+    window._ultimoEnvioContato = Date.now();
+    mostrarToast('Mensagem enviada com sucesso!');
+    e.target.reset();
+    
+    const leads = lerLista(CHAVES.leads);
+    leads.push({ nome, email, mensagem, data: new Date().toISOString() });
+    salvarLista(CHAVES.leads, leads);
+  } else {
+    mostrarToast('Erro ao enviar mensagem para o Discord. Tente novamente.');
+  }
+
+  if (btnSubmit) {
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Enviar mensagem';
+  }
+}
+
+/* ================= LOCAIS / MAPA ================= */
 function preencherEstados(){
   const sel = document.getElementById('sel-estado');
+  if(!sel) return;
   sel.innerHTML = ESTADOS.map(e => `<option value="${e[0]}" data-capital="${e[2]}">${e[1]}</option>`).join('');
   preencherCapital();
 }
 function preencherCapital(){
   const sel = document.getElementById('sel-estado');
+  if(!sel) return;
   const opt = sel.options[sel.selectedIndex];
-  document.getElementById('input-cidade').value = opt ? opt.dataset.capital : '';
+  const inputCidade = document.getElementById('input-cidade');
+  if(inputCidade) inputCidade.value = opt ? opt.dataset.capital : '';
 }
 function buscarNoMapa(){
   const cidade = document.getElementById('input-cidade').value.trim();
@@ -125,22 +408,25 @@ function buscarNoMapa(){
   const estado = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].textContent : '';
   const esporte = document.getElementById('sel-esporte').value;
   const consulta = `${esporte} em ${cidade}, ${estado}`;
-  const url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(consulta);
-  document.getElementById('mapa-embed').src = 'https://maps.google.com/maps?q=' + encodeURIComponent(consulta) + '&t=&z=13&ie=UTF8&iwloc=&output=embed';
+  const url = '[https://www.google.com/maps/search/?api=1&query=](https://www.google.com/maps/search/?api=1&query=)' + encodeURIComponent(consulta);
+  const mapaEmbed = document.getElementById('mapa-embed');
+  if(mapaEmbed) mapaEmbed.src = '[https://maps.google.com/maps?q=](https://maps.google.com/maps?q=)' + encodeURIComponent(consulta) + '&t=&z=13&ie=UTF8&iwloc=&output=embed';
   window.open(url, '_blank');
 }
 function carregarLocaisExemplo(){
+  const container = document.getElementById('locais-exemplo');
+  if(!container) return;
   const exemplos = [
     ['Quadra Central', 'Quadra poliesportiva • aberta até 22h'],
     ['Campo Society Vila Nova', 'Futebol society • grama sintética'],
     ['Ginásio Municipal', 'Vôlei e queimada • entrada gratuita']
   ];
-  document.getElementById('locais-exemplo').innerHTML = exemplos.map(l => `
+  container.innerHTML = exemplos.map(l => `
     <div class="lugar-exemplo"><strong>${l[0]}</strong><span>${l[1]}</span></div>
   `).join('');
 }
 
-
+/* ================= GRUPOS DE PARTIDA ================= */
 function criarGrupo(e){
   e.preventDefault();
   const nome = document.getElementById('g-nome').value.trim();
@@ -164,13 +450,14 @@ function criarGrupo(e){
 function renderizarGrupos(){
   const grupos = lerLista(CHAVES.grupos);
   const container = document.getElementById('lista-grupos');
+  if(!container) return;
   if(grupos.length === 0){
     container.innerHTML = '<p class="empty-state">Nenhum grupo criado ainda. Que tal começar o primeiro?</p>';
   }else{
     container.innerHTML = grupos.map(g => `
       <div class="item-card" onclick="abrirDetalheGrupo('${g.id}')">
-        <h4>${g.nome}</h4>
-        <div class="meta">${g.esporte}${g.local ? ' • ' + g.local : ''}</div>
+        <h4>${sanitizarTexto(g.nome)}</h4>
+        <div class="meta">${sanitizarTexto(g.esporte)}${g.local ? ' • ' + sanitizarTexto(g.local) : ''}</div>
         <div class="meta">${formatarDataHora(g.dataHora)}</div>
         <div class="contagem">${g.jogadores.length} jogador(es) confirmado(s)</div>
       </div>
@@ -203,24 +490,26 @@ function renderizarDetalheGrupo(){
   if(!g) return;
   const timesHtml = g.times ? `
     <div class="times-sorteados">
-      <div class="time-col"><h5>Time A</h5><ul>${g.times[0].map(j=>`<li>${j}</li>`).join('') || '<li>-</li>'}</ul></div>
-      <div class="time-col"><h5>Time B</h5><ul>${g.times[1].map(j=>`<li>${j}</li>`).join('') || '<li>-</li>'}</ul></div>
+      <div class="time-col"><h5>Time A</h5><ul>${g.times[0].map(j=>`<li>${sanitizarTexto(j)}</li>`).join('') || '<li>-</li>'}</ul></div>
+      <div class="time-col"><h5>Time B</h5><ul>${g.times[1].map(j=>`<li>${sanitizarTexto(j)}</li>`).join('') || '<li>-</li>'}</ul></div>
     </div>` : '<p class="muted">Times ainda não sorteados.</p>';
 
   const placarHtml = g.placar ? `
     <p><strong>Placar final:</strong> Time A ${g.placar.a} x ${g.placar.b} Time B</p>
-    <p class="muted">Cartões amarelos: ${g.cartoes.amarelos.join(', ') || 'nenhum'}</p>
-    <p class="muted">Cartões vermelhos: ${g.cartoes.vermelhos.join(', ') || 'nenhum'}</p>
+    <p class="muted">Cartões amarelos: ${g.cartoes.amarelos.map(sanitizarTexto).join(', ') || 'nenhum'}</p>
+    <p class="muted">Cartões vermelhos: ${g.cartoes.vermelhos.map(sanitizarTexto).join(', ') || 'nenhum'}</p>
   ` : '';
 
-  document.getElementById('grupo-detalhe-conteudo').innerHTML = `
-    <h3>${g.nome}</h3>
-    <p class="muted">${g.esporte}${g.local ? ' • ' + g.local : ''} • ${formatarDataHora(g.dataHora)}</p>
+  const container = document.getElementById('grupo-detalhe-conteudo');
+  if(!container) return;
+  container.innerHTML = `
+    <h3>${sanitizarTexto(g.nome)}</h3>
+    <p class="muted">${sanitizarTexto(g.esporte)}${g.local ? ' • ' + sanitizarTexto(g.local) : ''} • ${formatarDataHora(g.dataHora)}</p>
 
     <div id="contagem-regressiva" class="countdown"></div>
 
     <h5>Jogadores confirmados</h5>
-    <p>${g.jogadores.length ? g.jogadores.join(', ') : 'Nenhum jogador adicionado.'}</p>
+    <p>${g.jogadores.length ? g.jogadores.map(sanitizarTexto).join(', ') : 'Nenhum jogador adicionado.'}</p>
     <div class="row-2">
       <input id="novo-jogador" type="text" placeholder="Nome do jogador">
       <button class="btn btn-outline" onclick="adicionarJogador()">Adicionar jogador</button>
@@ -254,7 +543,8 @@ function renderizarDetalheGrupo(){
   renderizarContagemRegressiva();
 }
 function adicionarJogador(){
-  const nome = document.getElementById('novo-jogador').value.trim();
+  const input = document.getElementById('novo-jogador');
+  const nome = input.value.trim();
   if(!nome) return;
   const g = obterGrupo(window._grupoAtual);
   g.jogadores.push(nome);
@@ -335,12 +625,13 @@ function criarCampeonato(e){
 function renderizarCampeonatos(){
   const campeonatos = lerLista(CHAVES.campeonatos);
   const container = document.getElementById('lista-campeonatos');
+  if(!container) return;
   if(campeonatos.length === 0){
     container.innerHTML = '<p class="empty-state">Nenhum campeonato criado ainda.</p>';
   }else{
     container.innerHTML = campeonatos.map(c => `
       <div class="item-card" onclick="abrirDetalheCampeonato('${c.id}')">
-        <h4>${c.nome}</h4>
+        <h4>${sanitizarTexto(c.nome)}</h4>
         <div class="meta">${c.times.length} times</div>
         <div class="contagem">${c.confrontos.length} confronto(s) registrado(s)</div>
       </div>
@@ -359,21 +650,22 @@ function abrirDetalheCampeonato(id){
 }
 function renderizarDetalheCampeonato(){
   const c = obterCampeonato(window._campeonatoAtual);
-  if(!c) return;
-  document.getElementById('campeonato-detalhe-conteudo').innerHTML = `
-    <h3>${c.nome}</h3>
+  const container = document.getElementById('campeonato-detalhe-conteudo');
+  if(!c || !container) return;
+  container.innerHTML = `
+    <h3>${sanitizarTexto(c.nome)}</h3>
 
     <h5>Times e jogadores</h5>
     <div class="cards-grid">
       ${c.times.map((t, i) => `
         <div class="item-card" style="cursor:default;">
           <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-            ${t.foto ? `<img src="${t.foto}" alt="Escudo de ${t.nome}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:8px;background:var(--areia-escura);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--verde);">${t.nome.charAt(0).toUpperCase()}</div>`}
-            <h4 style="margin:0;">${t.nome}</h4>
+            ${t.foto ? `<img src="${t.foto}" alt="Escudo de ${sanitizarTexto(t.nome)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:8px;background:var(--areia-escura);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--verde);">${t.nome.charAt(0).toUpperCase()}</div>`}
+            <h4 style="margin:0;">${sanitizarTexto(t.nome)}</h4>
           </div>
           <label class="fineprint">Escudo do time</label>
           <input type="file" accept="image/*" onchange="definirFotoTime(${i}, this)">
-          <p class="meta" style="margin-top:8px;">Jogadores: ${t.jogadores.length ? t.jogadores.join(', ') : 'nenhum cadastrado'}</p>
+          <p class="meta" style="margin-top:8px;">Jogadores: ${t.jogadores.length ? t.jogadores.map(sanitizarTexto).join(', ') : 'nenhum cadastrado'}</p>
           <div class="row-2">
             <input type="text" id="jogador-time-${i}" placeholder="Nome do jogador">
             <button type="button" class="btn btn-outline" onclick="adicionarJogadorTime(${i})">Adicionar</button>
@@ -385,10 +677,10 @@ function renderizarDetalheCampeonato(){
     <h5>Registrar confronto</h5>
     <form class="row-2" onsubmit="registrarConfronto(event)" style="align-items:end;">
       <div class="field"><label>Time A</label>
-        <select id="conf-a">${c.times.map(t=>`<option>${t.nome}</option>`).join('')}</select>
+        <select id="conf-a">${c.times.map(t=>`<option>${sanitizarTexto(t.nome)}</option>`).join('')}</select>
       </div>
       <div class="field"><label>Time B</label>
-        <select id="conf-b">${c.times.map(t=>`<option>${t.nome}</option>`).join('')}</select>
+        <select id="conf-b">${c.times.map(t=>`<option>${sanitizarTexto(t.nome)}</option>`).join('')}</select>
       </div>
       <div class="field"><label>Gols do Time A</label><input id="conf-golsa" type="number" min="0" value="0"></div>
       <div class="field"><label>Gols do Time B</label><input id="conf-golsb" type="number" min="0" value="0"></div>
@@ -397,7 +689,7 @@ function renderizarDetalheCampeonato(){
 
     <h5>Confrontos</h5>
     ${c.confrontos.length ? `<table class="tabela"><tr><th>Time A</th><th>Placar</th><th>Time B</th></tr>
-      ${c.confrontos.map(f=>`<tr><td>${f.timeA}</td><td>${f.golsA} x ${f.golsB}</td><td>${f.timeB}</td></tr>`).join('')}
+      ${c.confrontos.map(f=>`<tr><td>${sanitizarTexto(f.timeA)}</td><td>${f.golsA} x ${f.golsB}</td><td>${sanitizarTexto(f.timeB)}</td></tr>`).join('')}
     </table>` : '<p class="muted">Nenhum confronto registrado ainda.</p>'}
 
     <h5>Classificação</h5>
@@ -446,36 +738,23 @@ function renderizarTabelaClassificacao(c){
   const pontos = {};
   c.times.forEach(t => pontos[t.nome] = { pontos: 0, vitorias: 0, jogos: 0 });
   c.confrontos.forEach(f => {
-    pontos[f.timeA].jogos++; pontos[f.timeB].jogos++;
-    if(f.golsA > f.golsB){ pontos[f.timeA].pontos += 3; pontos[f.timeA].vitorias++; }
-    else if(f.golsB > f.golsA){ pontos[f.timeB].pontos += 3; pontos[f.timeB].vitorias++; }
-    else { pontos[f.timeA].pontos += 1; pontos[f.timeB].pontos += 1; }
+    if(pontos[f.timeA] && pontos[f.timeB]) {
+      pontos[f.timeA].jogos++; pontos[f.timeB].jogos++;
+      if(f.golsA > f.golsB){ pontos[f.timeA].pontos += 3; pontos[f.timeA].vitorias++; }
+      else if(f.golsB > f.golsA){ pontos[f.timeB].pontos += 3; pontos[f.timeB].vitorias++; }
+      else { pontos[f.timeA].pontos += 1; pontos[f.timeB].pontos += 1; }
+    }
   });
   const linhas = Object.entries(pontos).sort((a,b) => b[1].pontos - a[1].pontos);
   return `<table class="tabela"><tr><th>Time</th><th>Jogos</th><th>Vitórias</th><th>Pontos</th></tr>
-    ${linhas.map(([nome,dados]) => `<tr><td>${nome}</td><td>${dados.jogos}</td><td>${dados.vitorias}</td><td>${dados.pontos}</td></tr>`).join('')}
+    ${linhas.map(([nome,dados]) => `<tr><td>${sanitizarTexto(nome)}</td><td>${dados.jogos}</td><td>${dados.vitorias}</td><td>${dados.pontos}</td></tr>`).join('')}
   </table>`;
 }
 
-
-function enviarContato(e){
-  e.preventDefault();
-  const nome = document.getElementById('c-nome').value.trim();
-  const email = document.getElementById('c-email').value.trim();
-  const mensagem = document.getElementById('c-msg').value.trim();
-  const leads = lerLista(CHAVES.leads);
-  leads.push({ nome, email, mensagem, data: new Date().toISOString() });
-  salvarLista(CHAVES.leads, leads);
-  e.target.reset();
-  mostrarToast('Mensagem recebida! Em breve entraremos em contato.');
-  const assunto = encodeURIComponent('Contato pelo site - ' + nome);
-  const corpo = encodeURIComponent(mensagem + '\n\nDe: ' + nome + ' (' + email + ')');
-  window.open(`mailto:airesvinicius11@gmail.com?subject=${assunto}&body=${corpo}`, '_blank');
-}
-
-
+/* ================= ASSISTENTE ================= */
 function alternarChat(){
   const box = document.getElementById('chat-box');
+  if(!box) return;
   box.classList.toggle('hidden');
   if(!box.classList.contains('hidden') && document.getElementById('chat-body').children.length === 0){
     adicionarMensagemChat('bot', 'Oi! Posso ajudar a criar um grupo, sortear times, achar uma quadra ou explicar como funciona o campeonato. O que você precisa?');
@@ -483,6 +762,7 @@ function alternarChat(){
 }
 function adicionarMensagemChat(quem, texto){
   const body = document.getElementById('chat-body');
+  if(!body) return;
   const div = document.createElement('div');
   div.className = 'chat-msg ' + quem;
   div.textContent = texto;
@@ -509,13 +789,14 @@ function responderBot(pergunta){
   return 'Ainda estou aprendendo. Você pode navegar pelas seções Locais, Grupos e Campeonatos, ou perguntar de outro jeito.';
 }
 
-
+/* ================= PAINEL ADMINISTRATIVO ================= */
 function inicializarAdmin(){
   if(!localStorage.getItem(CHAVES.adminEmails)){
     salvarLista(CHAVES.adminEmails, ['airesvinicius11@gmail.com']);
   }
   if(window.location.hash === '#admin'){
-    document.getElementById('admin-overlay').classList.remove('hidden');
+    const el = document.getElementById('admin-overlay');
+    if(el) el.classList.remove('hidden');
   }
 }
 function entrarAdmin(){
@@ -537,7 +818,9 @@ function renderizarAdminDashboard(){
   const campeonatos = lerLista(CHAVES.campeonatos);
   const emails = lerLista(CHAVES.adminEmails);
 
-  document.getElementById('admin-dashboard').innerHTML = `
+  const dash = document.getElementById('admin-dashboard');
+  if(!dash) return;
+  dash.innerHTML = `
     <div class="admin-topline">
       <h3>Painel administrativo</h3>
       <button class="btn btn-ghost" onclick="window.location.hash=''; window.location.reload();">Sair</button>
@@ -551,25 +834,24 @@ function renderizarAdminDashboard(){
     <div class="admin-section">
       <h4>Mensagens recebidas</h4>
       ${leads.length ? leads.map(l => `
-        <div class="admin-list-item"><strong>${l.nome}</strong> (${l.email})<br>${l.mensagem}</div>
+        <div class="admin-list-item"><strong>${sanitizarTexto(l.nome)}</strong> (${sanitizarTexto(l.email)})<br>${sanitizarTexto(l.mensagem)}</div>
       `).join('') : '<p class="muted">Nenhuma mensagem ainda.</p>'}
     </div>
 
     <div class="admin-section">
       <h4>Contas criadas</h4>
-      ${usuarios.length ? usuarios.map(u => `<div class="admin-list-item">${u.nome} — ${u.email}</div>`).join('') : '<p class="muted">Nenhuma conta ainda.</p>'}
+      ${usuarios.length ? usuarios.map(u => `<div class="admin-list-item">${sanitizarTexto(u.nome)} ${u.idade ? '('+u.idade+' anos)' : ''} — ${sanitizarTexto(u.email)}</div>`).join('') : '<p class="muted">Nenhuma conta ainda.</p>'}
     </div>
 
     <div class="admin-section">
       <h4>E-mails autorizados a acessar este painel</h4>
       <div class="tag-list" id="admin-lista-emails">
-        ${emails.map(e => `<span class="tag-chip">${e}<button onclick="removerAdminEmail('${e}')">✕</button></span>`).join('')}
+        ${emails.map(e => `<span class="tag-chip">${sanitizarTexto(e)}<button onclick="removerAdminEmail('${e}')">✕</button></span>`).join('')}
       </div>
       <div class="row-2" style="margin-top:12px;">
         <input id="novo-admin-email" type="email" placeholder="novoemail@exemplo.com">
         <button class="btn btn-outline" onclick="adicionarAdminEmail()">Autorizar e-mail</button>
       </div>
-      <p class="fineprint">Este controle é feito neste navegador. Para uma proteção real contra acessos não autorizados, é necessário um servidor com autenticação própria.</p>
     </div>
   `;
 }
@@ -588,18 +870,26 @@ function removerAdminEmail(email){
   renderizarAdminDashboard();
 }
 
+/* ================= CONTADORES DO HERO ================= */
 function atualizarContadoresHero(){
   const grupos = lerLista(CHAVES.grupos);
   const totalJogadores = grupos.reduce((soma, g) => soma + g.jogadores.length, 0);
-  document.getElementById('stat-jogadores').textContent = totalJogadores;
-  document.getElementById('stat-grupos').textContent = grupos.length;
+  const elJ = document.getElementById('stat-jogadores');
+  const elG = document.getElementById('stat-grupos');
+  if(elJ) elJ.textContent = totalJogadores;
+  if(elG) elG.textContent = grupos.length;
 }
 
+/* ================= MENU MOBILE ================= */
+const btnHamburguer = document.getElementById('hamburguer');
+if(btnHamburguer) {
+  btnHamburguer.addEventListener('click', () => {
+    const nav = document.getElementById('nav-menu');
+    if(nav) nav.classList.toggle('open');
+  });
+}
 
-document.getElementById('hamburguer').addEventListener('click', () => {
-  document.getElementById('nav-menu').classList.toggle('open');
-});
-
+/* ================= INICIALIZAÇÃO ================= */
 document.addEventListener('DOMContentLoaded', () => {
   preencherEstados();
   carregarLocaisExemplo();
