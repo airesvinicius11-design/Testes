@@ -17,9 +17,6 @@ const CHAVES = {
   campeonatos: 'sea_campeonatos',
   adminEmails: 'sea_admin_emails'
 };
-
-/* Estados do Brasil, com a capital pré-preenchida.
-   Qualquer outra cidade pode ser digitada no campo ao lado. */
 const ESTADOS = [
   ['AC','Acre','Rio Branco'],['AL','Alagoas','Maceió'],['AP','Amapá','Macapá'],
   ['AM','Amazonas','Manaus'],['BA','Bahia','Salvador'],['CE','Ceará','Fortaleza'],
@@ -33,14 +30,13 @@ const ESTADOS = [
   ['SP','São Paulo','São Paulo'],['SE','Sergipe','Aracaju'],['TO','Tocantins','Palmas']
 ];
 
-/* ---------------- utilidades de storage ---------------- */
 function lerLista(chave){
   try{ return JSON.parse(localStorage.getItem(chave)) || []; }catch(e){ return []; }
 }
 function salvarLista(chave, lista){ localStorage.setItem(chave, JSON.stringify(lista)); }
 function gerarId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
-/* ---------------- toast ---------------- */
+
 function mostrarToast(texto){
   const t = document.getElementById('toast');
   t.textContent = texto;
@@ -49,11 +45,9 @@ function mostrarToast(texto){
   window._toastTimer = setTimeout(()=> t.classList.add('hidden'), 3200);
 }
 
-/* ---------------- modais genéricos ---------------- */
 function abrirModal(id){ document.getElementById(id).classList.remove('hidden'); }
 function fecharModal(id){ document.getElementById(id).classList.add('hidden'); }
 
-/* ================= AUTENTICAÇÃO (demonstração) ================= */
 function abrirAuth(aba){
   abrirModal('modal-auth');
   mudarAbaAuth(aba);
@@ -114,7 +108,7 @@ function atualizarChipUsuario(){
   }
 }
 
-/* ================= LOCAIS / MAPA ================= */
+
 function preencherEstados(){
   const sel = document.getElementById('sel-estado');
   sel.innerHTML = ESTADOS.map(e => `<option value="${e[0]}" data-capital="${e[2]}">${e[1]}</option>`).join('');
@@ -146,7 +140,7 @@ function carregarLocaisExemplo(){
   `).join('');
 }
 
-/* ================= GRUPOS DE PARTIDA ================= */
+
 function criarGrupo(e){
   e.preventDefault();
   const nome = document.getElementById('g-nome').value.trim();
@@ -463,7 +457,7 @@ function renderizarTabelaClassificacao(c){
   </table>`;
 }
 
-/* ================= CONTATO ================= */
+
 function enviarContato(e){
   e.preventDefault();
   const nome = document.getElementById('c-nome').value.trim();
@@ -479,7 +473,7 @@ function enviarContato(e){
   window.open(`mailto:airesvinicius11@gmail.com?subject=${assunto}&body=${corpo}`, '_blank');
 }
 
-/* ================= ASSISTENTE (bot simples) ================= */
+
 function alternarChat(){
   const box = document.getElementById('chat-box');
   box.classList.toggle('hidden');
@@ -515,7 +509,7 @@ function responderBot(pergunta){
   return 'Ainda estou aprendendo. Você pode navegar pelas seções Locais, Grupos e Campeonatos, ou perguntar de outro jeito.';
 }
 
-/* ================= PAINEL ADMINISTRATIVO ================= */
+
 function inicializarAdmin(){
   if(!localStorage.getItem(CHAVES.adminEmails)){
     salvarLista(CHAVES.adminEmails, ['airesvinicius11@gmail.com']);
@@ -594,7 +588,6 @@ function removerAdminEmail(email){
   renderizarAdminDashboard();
 }
 
-/* ================= CONTADORES DO HERO ================= */
 function atualizarContadoresHero(){
   const grupos = lerLista(CHAVES.grupos);
   const totalJogadores = grupos.reduce((soma, g) => soma + g.jogadores.length, 0);
@@ -602,12 +595,11 @@ function atualizarContadoresHero(){
   document.getElementById('stat-grupos').textContent = grupos.length;
 }
 
-/* ================= MENU MOBILE ================= */
+
 document.getElementById('hamburguer').addEventListener('click', () => {
   document.getElementById('nav-menu').classList.toggle('open');
 });
 
-/* ================= INICIALIZAÇÃO ================= */
 document.addEventListener('DOMContentLoaded', () => {
   preencherEstados();
   carregarLocaisExemplo();
